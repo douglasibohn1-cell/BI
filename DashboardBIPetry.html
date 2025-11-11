@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BI Cross-filter Total – Indústria Alimentícia</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{ --bg:#050505; --card:#0b1220; --muted:#9ca3af; --accent:#dc2626; --accent-2:#f59e0b; --text:#e5e7eb; --glass:rgba(255,255,255,0.03); }
+*{box-sizing:border-box;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial;}
+body{margin:0;background:linear-gradient(180deg,var(--bg),#030303);color:var(--text);-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1200px;margin:24px auto;padding:20px;}
+header{display:flex;align-items:center;gap:16px;}
+header img{width:72px;height:72px;border-radius:12px;background:white;padding:6px;}
+h1{margin:0;font-size:20px;color:var(--accent-2);}
+p.lead{color:var(--muted);margin-top:6px;margin-bottom:12px;max-width:860px;}
+.controls{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap;}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{background:var(--card);border:1px solid var(--glass);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;font-size:13px;}
+.btn.active{background:linear-gradient(90deg,var(--accent) 0%, var(--accent-2) 100%);color:#070707;font-weight:600;border:1px solid rgba(0,0,0,0.2);}
+.select{background:var(--card);border:1px solid var(--glass);color:var(--text);padding:8px 10px;border-radius:8px;}
+.kpis{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap;}
+.kpi{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:10px;min-width:150px;}
+.kpi .label{font-size:12px;color:var(--muted);} .kpi .value{font-weight:700;font-size:18px;color:var(--text);margin-top:6px;}
+main{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;}
+.card{background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 8px 24px rgba(2,6,23,0.6);overflow:hidden;transition:box-shadow .2s,border-color .2s;}
+.card.highlight{box-shadow:0 12px 40px rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.18);}
+.card h3{margin:0 0 8px 0;color:var(--accent-2);font-size:15px;}
+canvas{width:100% !important;height:240px !important;display:block;}
+footer{text-align:center;color:var(--muted);margin-top:26px;font-size:13px;}
+@media (max-width:900px){main{grid-template-columns:1fr;}canvas{height:200px !important;} .controls{justify-content:center}}
+.fade-in{opacity:0;transform:translateY(10px);animation:fadeInUp .7s ease forwards;}@keyframes fadeInUp{to{opacity:1;transform:none;}}
+.filter-pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);font-size:13px;color:var(--muted);}
+.filter-pill strong{color:var(--accent-2);margin-left:6px}
+.small-note{font-size:12px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="fade-in" style="animation-delay:.05s">
+    <img src="data:image/png;base64,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" alt="logo" />
+    <div>
+      <h1>Inteligência de Negócios — Indústria Alimentícia</h1>
+      <p class="lead">Transforme dados em resultados: o Business Intelligence conecta produção, vendas e finanças para decisões mais rápidas e lucrativas.</p>
+      <div class="controls" style="margin-top:8px;">
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Área</div>
+          <div class="btn-group" id="areaBtns">
+            <button class="btn active" data-area="Todos">Todos</button>
+            <button class="btn" data-area="Vendas">Vendas</button>
+            <button class="btn" data-area="Produção">Produção</button>
+            <button class="btn" data-area="Qualidade">Qualidade</button>
+            <button class="btn" data-area="Logística">Logística</button>
+            <button class="btn" data-area="Financeiro">Financeiro</button>
+            <button class="btn" data-area="RH">RH</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Período</div>
+          <div class="btn-group" id="periodBtns">
+            <button class="btn" data-period="3">Últimos 3 meses</button>
+            <button class="btn" data-period="6">Últimos 6 meses</button>
+            <button class="btn active" data-period="12">Últimos 12 meses</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Produto</div>
+          <select id="productSel" class="select" aria-label="Produto">
+            <option value="Todos">Todos</option>
+            <option value="Biscoito">Biscoito</option>
+            <option value="Bombom">Bombom</option>
+            <option value="Doce">Doce</option>
+            <option value="Recheado">Recheado</option>
+            <option value="Salgadinho">Salgadinho</option>
+          </select>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <div class="filter-pill" id="activeFilterPill">Filtro: <strong id="activeFilterLabel">Nenhum</strong></div>
+          <button class="btn" id="clearFiltersBtn">Limpar filtros</button>
+        </div>
+      </div>
+      <div class="small-note">Dica: clique em um ponto/barra/fatia para filtrar. Shift+clique para selecionar múltiplos valores.</div>
+    </div>
+  </header>
+
+  <section class="kpis fade-in" style="animation-delay:.12s">
+    <div class="kpi"><div class="label">Faturamento (mês)</div><div id="kpiRevenue" class="value">R$ 5.120.430</div></div>
+    <div class="kpi"><div class="label">OEE Médio</div><div id="kpiOee" class="value">85%</div></div>
+    <div class="kpi"><div class="label">Taxa NC</div><div id="kpiNc" class="value">1.4%</div></div>
+    <div class="kpi"><div class="label">Custo Frete / Pedido</div><div id="kpiFrete" class="value">R$ 13,50</div></div>
+  </section>
+
+  <main id="cards">
+    <div class="card" data-area="Vendas"><h3>Vendas — Receita por Mês</h3><canvas id="chartSales"></canvas></div>
+    <div class="card" data-area="Produção"><h3>Produção — OEE por Linha</h3><canvas id="chartOee"></canvas></div>
+    <div class="card" data-area="Qualidade"><h3>Qualidade — Não Conformidades por Tipo</h3><canvas id="chartQuality"></canvas></div>
+    <div class="card" data-area="Financeiro"><h3>Financeiro — Margem por Produto</h3><canvas id="chartMargin"></canvas></div>
+    <div class="card" data-area="Logística"><h3>Logística — Entregas no Prazo (%)</h3><canvas id="chartLogistics"></canvas></div>
+    <div class="card" data-area="RH"><h3>RH — Turnover e Absenteísmo</h3><canvas id="chartRh"></canvas></div>
+  </main>
+
+  <footer>Proposta interativa — cross-filter total entre todos os gráficos.</footer>
+</div>
+
+<script>
+// Data and helpers
+const ALL_MONTHS = ['Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'];
+const BASE = {
+  sales_total: [4200000,4400000,4800000,5000000,5100000,5200000,5300000,5400000,5200000,5000000,4900000,5120430],
+  sales_by_product: {
+    'Biscoito':[1200000,1250000,1300000,1350000,1380000,1400000,1450000,1480000,1420000,1380000,1350000,1400000],
+    'Bombom':[600000,620000,650000,660000,670000,680000,690000,700000,690000,680000,670000,680000],
+    'Doce':[500000,520000,540000,560000,570000,580000,590000,600000,590000,580000,570000,580000],
+    'Recheado':[700000,710000,720000,730000,740000,750000,760000,770000,760000,750000,740000,750000],
+    'Salgadinho':[400000,410000,430000,450000,450000,460000,470000,480000,450000,440000,420000,420430]
+  },
+  oee_lines: { labels:['Linha A','Linha B','Linha C','Linha D'], values:[88,84,82,80] },
+  qc: { labels:['Contaminação','Peso fora','Embalagem','Rotura'], values:[45,78,32,20] },
+  margins: { labels:['Biscoito','Bombom','Doce','Recheado','Salgadinho'], values:[32,18,24,28,15] },
+  ontime: [92,90,91,93,94,95,94,95,93,92,91,93],
+  turnover: [4.2,4.1,3.9,4.0,4.3,4.5,4.6,4.4,4.2,4.0,3.9,4.1],
+  absentee: [2.1,2.0,1.9,2.0,2.2,2.3,2.4,2.3,2.1,2.0,1.9,2.0]
+};
+
+function takeLast(arr,n){ return arr.slice(Math.max(arr.length-n,0)); }
+function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
+function formatCurrencyBR(n){ return 'R$ ' + n.toLocaleString('pt-BR'); }
+
+// state
+let activeFilters = { month: new Set(), product: new Set(), qc: new Set(), oee_line: new Set() };
+let currentArea = 'Todos', currentPeriod = 12, currentProduct = 'Todos';
+let charts = {};
+
+// Chart defaults
+const defaultOptions = {
+  responsive:true, maintainAspectRatio:false,
+  animation: { duration: 600, easing: 'easeOutQuart' },
+  plugins: { legend: { labels: { color: '#cbd5e1' } }, tooltip: { bodyColor: '#111', titleColor:'#111' } },
+  scales: { x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.03)' } }, y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.03)' } } }
+};
+
+// create charts with click handlers
+function createSalesChart(labels, data){
+  const ctx = document.getElementById('chartSales').getContext('2d');
+  if(charts.sales) charts.sales.destroy();
+  charts.sales = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'Receita (R$)', data, _orig: data.slice(), borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.08)', tension:0.25, pointRadius:6, pointHoverRadius:8 }
+    ]},
+    options: Object.assign({}, defaultOptions, { onClick: (evt, elems) => handleClickGeneric(evt, elems, 'month', charts.sales) })
+  });
+}
+
+function createOeeChart(labels, data){
+  const ctx = document.getElementById('chartOee').getContext('2d');
+  if(charts.oee) charts.oee.destroy();
+  charts.oee = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'OEE (%)', data, _orig: data.slice(), backgroundColor:['#dc2626','#f59e0b','#ef4444','#f97316'] }]},
+    options: Object.assign({}, defaultOptions, { onClick: (evt, elems) => handleClickGeneric(evt, elems, 'oee_line', charts.oee) })
+  });
+}
+
+function createQualityChart(labels,data){
+  const ctx = document.getElementById('chartQuality').getContext('2d');
+  if(charts.quality) charts.quality.destroy();
+  charts.quality = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, _orig: data.slice(), backgroundColor:['#dc2626','#f59e0b','#ef4444','#f97316'] }]},
+    options: Object.assign({}, defaultOptions, { onClick: (evt, elems) => handleClickGeneric(evt, elems, 'qc', charts.quality) })
+  });
+}
+
+function createMarginChart(labels,data){
+  const ctx = document.getElementById('chartMargin').getContext('2d');
+  if(charts.margin) charts.margin.destroy();
+  charts.margin = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Margem (%)', data, _orig: data.slice(), backgroundColor:'#f59e0b' }]},
+    options: Object.assign({}, defaultOptions, { onClick: (evt, elems) => handleClickGeneric(evt, elems, 'product', charts.margin) })
+  });
+}
+
+function createLogisticsChart(labels,data){
+  const ctx = document.getElementById('chartLogistics').getContext('2d');
+  if(charts.logistics) charts.logistics.destroy();
+  charts.logistics = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{ label:'On-time (%)', data, _orig: data.slice(), borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,0.06)', pointRadius:6, pointHoverRadius:8 }]},
+    options: Object.assign({}, defaultOptions, { onClick: (evt, elems) => handleClickGeneric(evt, elems, 'month', charts.logistics) })
+  });
+}
+
+function createRhChart(labels, turnoverData, absenteeData){
+  const ctx = document.getElementById('chartRh').getContext('2d');
+  if(charts.rh) charts.rh.destroy();
+  charts.rh = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[
+      { type:'line', label:'Turnover (%)', data:turnoverData, _orig: turnoverData.slice(), borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.06)', yAxisID:'y1', tension:0.3, pointRadius:4 },
+      { type:'bar', label:'Absenteísmo (%)', data:absenteeData, _orig: absenteeData.slice(), backgroundColor:'#ef4444', yAxisID:'y2' }
+    ]},
+    options: Object.assign({}, defaultOptions, { onClick: (evt, elems) => handleClickGeneric(evt, elems, 'month', charts.rh),
+      scales: Object.assign({}, defaultOptions.scales, { y1: { position:'left', ticks:{ color:'#9ca3af' } }, y2: { position:'right', ticks:{ color:'#9ca3af' }, grid:{ display:false } } })
+    })
+  });
+}
+
+// generic click handler: kind = 'month'|'product'|'qc'|'oee_line'
+function handleClickGeneric(evt, elems, kind, chartInstance){
+  if(!elems || elems.length === 0) return;
+  const el = elems[0];
+  const idx = el.index;
+  const label = chartInstance.data.labels ? chartInstance.data.labels[idx] : null;
+  if(!label) return;
+  const multi = evt.native && evt.native.shiftKey;
+  if(!multi){
+    if(activeFilters[kind].size === 1 && activeFilters[kind].has(label)){
+      activeFilters[kind].clear();
+      document.getElementById('activeFilterLabel').textContent = buildActiveLabel();
+      removeHighlights();
+      renderAll();
+      return;
+    }
+    activeFilters[kind].clear();
+    activeFilters[kind].add(label);
+  } else {
+    if(activeFilters[kind].has(label)) activeFilters[kind].delete(label); else activeFilters[kind].add(label);
+  }
+  document.getElementById('activeFilterLabel').textContent = buildActiveLabel();
+  highlightChartCard(chartInstance.canvas);
+  renderAll();
+}
+
+function buildActiveLabel(){ const parts = []; for(const k of Object.keys(activeFilters)){ if(activeFilters[k].size>0) parts.push(k+':'+Array.from(activeFilters[k]).join(',')); } return parts.length? parts.join(' | ') : 'Nenhum'; }
+function highlightChartCard(canvas){ removeHighlights(); const card = canvas.closest('.card'); if(card) card.classList.add('highlight'); }
+function removeHighlights(){ document.querySelectorAll('.card').forEach(c=>c.classList.remove('highlight')); }
+
+function updateKpis(periodMonths, product){
+  let revenue = 0;
+  const monthsIdx = Array.from(activeFilters.month).map(m=>ALL_MONTHS.indexOf(m)).filter(i=>i>=0);
+  if(monthsIdx.length>0){
+    if(product==='Todos'){
+      monthsIdx.forEach(i=> revenue += BASE.sales_total[i]);
+    } else {
+      monthsIdx.forEach(i=> revenue += BASE.sales_by_product[product][i]);
+    }
+  } else {
+    if(product==='Todos') revenue = sum(takeLast(BASE.sales_total, periodMonths));
+    else revenue = sum(takeLast(BASE.sales_by_product[product], periodMonths));
+  }
+  document.getElementById('kpiRevenue').textContent = formatCurrencyBR(Math.round(revenue));
+  const oeeAvg = Math.round(BASE.oee_lines.values.reduce((a,b)=>a+b,0)/BASE.oee_lines.values.length);
+  document.getElementById('kpiOee').textContent = oeeAvg + '%';
+  document.getElementById('kpiNc').textContent = (Math.random()*0.6 + 1.0).toFixed(1) + '%';
+  document.getElementById('kpiFrete').textContent = 'R$ ' + (13 + Math.floor(Math.random()*5)) + ',00';
+}
+
+function renderAll(){
+  const monthSet = activeFilters.month.size ? Array.from(activeFilters.month) : takeLast(ALL_MONTHS, currentPeriod);
+  const monthsLabels = monthSet;
+  let salesArr = [];
+  if(activeFilters.product.size>0){
+    monthsLabels.forEach(m=>{ const idx = ALL_MONTHS.indexOf(m); let s=0; activeFilters.product.forEach(p=> s += BASE.sales_by_product[p][idx]); salesArr.push(Math.round(s/1000)); });
+  } else if(currentProduct !== 'Todos'){
+    const arr = BASE.sales_by_product[currentProduct];
+    monthsLabels.forEach(m=>{ const i = ALL_MONTHS.indexOf(m); salesArr.push(Math.round(arr[i]/1000)); });
+  } else {
+    monthsLabels.forEach(m=>{ const i = ALL_MONTHS.indexOf(m); salesArr.push(Math.round(BASE.sales_total[i]/1000)); });
+  }
+  createSalesChart(monthsLabels, salesArr);
+
+  if(activeFilters.oee_line.size>0){
+    const labels = Array.from(activeFilters.oee_line);
+    const vals = labels.map(l=> BASE.oee_lines.values[BASE.oee_lines.labels.indexOf(l)] );
+    createOeeChart(labels, vals);
+  } else if(activeFilters.month.size>0){
+    createOeeChart(['Geral'], [ Math.round(BASE.oee_lines.values.reduce((a,b)=>a+b,0)/BASE.oee_lines.values.length) ]);
+  } else {
+    createOeeChart(BASE.oee_lines.labels, BASE.oee_lines.values);
+  }
+
+  if(activeFilters.qc.size>0){
+    const labels = Array.from(activeFilters.qc);
+    const vals = labels.map(l=> BASE.qc.values[BASE.qc.labels.indexOf(l)] );
+    createQualityChart(labels, vals);
+  } else {
+    createQualityChart(BASE.qc.labels, BASE.qc.values);
+  }
+
+  if(activeFilters.product.size>0){
+    const labels = Array.from(activeFilters.product);
+    const vals = labels.map(l=> BASE.margins.values[BASE.margins.labels.indexOf(l)] );
+    createMarginChart(labels, vals);
+  } else if(currentProduct !== 'Todos'){
+    const idx = BASE.margins.labels.indexOf(currentProduct);
+    const arr = BASE.margins.values.map((v,i)=> i===idx ? v+4 : v);
+    createMarginChart(BASE.margins.labels, arr);
+  } else {
+    createMarginChart(BASE.margins.labels, BASE.margins.values);
+  }
+
+  createLogisticsChart(monthsLabels, monthsLabels.map(m=> BASE.ontime[ALL_MONTHS.indexOf(m)] ));
+  createRhChart(monthsLabels, monthsLabels.map(m=> BASE.turnover[ALL_MONTHS.indexOf(m)] ), monthsLabels.map(m=> BASE.absentee[ALL_MONTHS.indexOf(m)] ));
+
+  updateKpis(currentPeriod, currentProduct);
+
+  document.querySelectorAll('#cards .card').forEach(card=>{ const area = card.getAttribute('data-area'); if(currentArea === 'Todos' || currentArea === area) card.style.display = 'block'; else card.style.display = 'none'; });
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('#areaBtns .btn').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('#areaBtns .btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); currentArea = btn.getAttribute('data-area'); renderAll(); }); });
+  document.querySelectorAll('#periodBtns .btn').forEach(btn=>{ btn.addEventListener('click', ()=>{ document.querySelectorAll('#periodBtns .btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); currentPeriod = parseInt(btn.getAttribute('data-period'),10); renderAll(); }); });
+  document.getElementById('productSel').addEventListener('change', (e)=>{ currentProduct = e.target.value; activeFilters.product.clear(); document.getElementById('activeFilterLabel').textContent = buildActiveLabel(); renderAll(); });
+  document.getElementById('clearFiltersBtn').addEventListener('click', ()=>{ activeFilters = { month: new Set(), product: new Set(), qc: new Set(), oee_line: new Set() }; document.getElementById('activeFilterLabel').textContent = 'Nenhum'; removeHighlights(); renderAll(); });
+  renderAll();
+});
+</script>
+</body>
+</html>
